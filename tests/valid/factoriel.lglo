@@ -1,0 +1,20 @@
+(* factorial.lglo - Calcul recursif de la factorielle
+   Test : functio, reddere, quia, appel, emittum
+*)
+
+functio integer factorielle(integer n) {
+    quia(n <= 1) {
+        reddere 1 #
+    }
+    reddere n * factorielle(n - 1) #
+}
+
+mut integer val #
+captum(val) #
+
+quia(val < 0) {
+    emittum("Erreur : entier negatif") #
+} aliter {
+    mut integer resultat <-- factorielle(val) #
+    emittum(resultat) #
+}

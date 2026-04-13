@@ -1,0 +1,21 @@
+(* wrong_decl.lglo - Test d'erreurs semantiques
+   Erreurs attendues :
+     - ligne 10 : variable 'compteur' utilisee sans declaration
+     - ligne 13 : double declaration de 'score' dans la meme portee
+     - ligne 16 : affectation d'une constante imm
+     - ligne 19 : type incompatible (integer attendu, reales recu)
+*)
+
+mut integer score  <-- 0 #
+mut reales  ratio  <-- 1.5 #
+
+emittum(compteur) #           (* variable non declaree *)
+
+mut integer score  <-- 10 #  (* double declaration *)
+
+imm integer MAX <-- 100 #
+MAX <-- 200 #                 (* affectation d'une constante *)
+
+score <-- ratio #             (* type incompatible : integer vs reales *)
+
+emittum(score) #

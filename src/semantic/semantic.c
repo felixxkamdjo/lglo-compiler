@@ -117,7 +117,7 @@ static char *analyser_expr(ASTNode *n, TableSymboles *ts) {
         case N_IDENTI: {
             Symbole *s = ts_chercher(ts, n->data.valeur_chaine);
             if (!s) {
-                erreur_variable_non_declaree(n->data.valeur_chaine, 0);
+                erreur_variable_non_declaree(n->data.valeur_chaine, n->ligne);
                 nb_erreurs++;
                 return NULL;
             }
@@ -141,7 +141,7 @@ static char *analyser_expr(ASTNode *n, TableSymboles *ts) {
 
             /* operateurs arithmetiques : les deux operandes doivent etre numeriques */
             if (tg && td && strcmp(tg, td) != 0) {
-                erreur_type_incompatible(tg, td, 0);
+                erreur_type_incompatible(tg, td, n->ligne);
                 nb_erreurs++;
                 return NULL;
             }
@@ -154,7 +154,7 @@ static char *analyser_expr(ASTNode *n, TableSymboles *ts) {
         case N_APPEL: {
             Symbole *s = ts_chercher(ts, n->data.appel.nom);
             if (!s) {
-                erreur_variable_non_declaree(n->data.appel.nom, 0);
+                erreur_variable_non_declaree(n->data.appel.nom, n->ligne);
                 nb_erreurs++;
                 return NULL;
             }
@@ -183,7 +183,7 @@ static void analyser_inst(ASTNode *n, TableSymboles *ts,
             char *type_init = analyser_expr(n->data.decl.init, ts);
             if (type_init && strcmp(type_init, n->data.decl.type_var) != 0) {
                 erreur_type_incompatible(n->data.decl.type_var, type_init,
-                                         n->data.decl.init ? 0 : 0);
+                                         n->data.decl.init ? n->ligne : 0);
                 nb_erreurs++;
             }
             ts_inserer(ts, n->data.decl.nom, n->data.decl.type_var,
@@ -194,7 +194,7 @@ static void analyser_inst(ASTNode *n, TableSymboles *ts,
         case N_DECL_IMM: {
             char *type_init = analyser_expr(n->data.decl.init, ts);
             if (type_init && strcmp(type_init, n->data.decl.type_var) != 0) {
-                erreur_type_incompatible(n->data.decl.type_var, type_init, 0);
+                erreur_type_incompatible(n->data.decl.type_var, type_init, n->ligne);
                 nb_erreurs++;
             }
             ts_inserer(ts, n->data.decl.nom, n->data.decl.type_var,
@@ -205,18 +205,18 @@ static void analyser_inst(ASTNode *n, TableSymboles *ts,
         case N_AFFECT: {
             Symbole *s = ts_chercher(ts, n->data.affect.cible);
             if (!s) {
-                erreur_variable_non_declaree(n->data.affect.cible, 0);
+                erreur_variable_non_declaree(n->data.affect.cible, n->ligne);
                 nb_erreurs++;
                 break;
             }
             if (s->categorie == SYM_CONSTANTE) {
-                erreur_affectation_constante(n->data.affect.cible, 0);
+                erreur_affectation_constante(n->data.affect.cible, n->ligne);
                 nb_erreurs++;
                 break;
             }
             char *type_val = analyser_expr(n->data.affect.valeur, ts);
             if (type_val && strcmp(type_val, s->type) != 0) {
-                erreur_type_incompatible(s->type, type_val, 0);
+                erreur_type_incompatible(s->type, type_val, n->ligne);
                 nb_erreurs++;
             }
             break;
@@ -226,15 +226,15 @@ static void analyser_inst(ASTNode *n, TableSymboles *ts,
             Symbole *cible  = ts_chercher(ts, n->data.affect.cible);
             Symbole *source = ts_chercher(ts, n->data.affect.source);
             if (!cible) {
-                erreur_variable_non_declaree(n->data.affect.cible, 0);
+                erreur_variable_non_declaree(n->data.affect.cible, n->ligne);
                 nb_erreurs++;
             }
             if (!source) {
-                erreur_variable_non_declaree(n->data.affect.source, 0);
+                erreur_variable_non_declaree(n->data.affect.source, n->ligne);
                 nb_erreurs++;
             }
             if (cible && source && strcmp(cible->type, source->type) != 0) {
-                erreur_type_incompatible(cible->type, source->type, 0);
+                erreur_type_incompatible(cible->type, source->type, n->ligne);
                 nb_erreurs++;
             }
             break;
@@ -243,10 +243,10 @@ static void analyser_inst(ASTNode *n, TableSymboles *ts,
         case N_CAPTUM: {
             Symbole *s = ts_chercher(ts, n->data.captum.nom);
             if (!s) {
-                erreur_variable_non_declaree(n->data.captum.nom, 0);
+                erreur_variable_non_declaree(n->data.captum.nom, n->ligne);
                 nb_erreurs++;
             } else if (s->categorie == SYM_CONSTANTE) {
-                erreur_affectation_constante(n->data.captum.nom, 0);
+                erreur_affectation_constante(n->data.captum.nom, n->ligne);
                 nb_erreurs++;
             }
             break;

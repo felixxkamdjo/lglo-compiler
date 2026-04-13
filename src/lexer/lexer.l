@@ -1,27 +1,22 @@
 /* lexer.l - Analyseur lexical */
 
 %{
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ast/ast.h"
 #include "parser.tab.h"
-#include "../utils/error.h"
-
-/* Compteur de lignes */
-int yyline = 1;
-
-/* Macro de mise à jour de la position courante */
-#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yyline;
+#include "utils/error.h"
 %}
 
-/* Suppression des dependances et activation du suivi automatique du numero de la ligne courante */
 %option noyywrap
 %option nounput
 %option noinput
 %option yylineno
 
+%x COMMENTAIRE_BLOC
 
-/* -- Patterns de base -- */
 
 CHIFFRE        [0-9]
 LETTRE         [a-zA-Z_]
@@ -32,185 +27,104 @@ NOMBRE_REEL    {CHIFFRE}+"."{CHIFFRE}+
 CHAINE         \"([^\"\\]|\\.)*\"
 BLANC          [ \t\r]+
 
-
 %%
 
 
-/* -- Commentaires -- */
-
-"//"[^\n]*                  { /* commentaire ligne, ignore */ }
-"(*"([^*]|\*+[^*)])*"*)"   {
-                                for (int i = 0; yytext[i]; i++)
-                                    if (yytext[i] == '\n') yyline++;
-                            }
+"(*"                        { BEGIN(COMMENTAIRE_BLOC); }
+<COMMENTAIRE_BLOC>"*)"      { BEGIN(INITIAL); }
+<COMMENTAIRE_BLOC>\n        { /* yylineno auto */ }
+<COMMENTAIRE_BLOC>.         { /* ignore */ }
 
 
+"mut"       { return MUT; }
+"imm"       { return IMM; }
+
+"integer"   { return T_INTEGER; }
+"reales"    { return T_REALES; }
+"catena"    { return T_CATENA; }
+"bina"      { return T_BINA; }
+"nullum"    { return T_NULLUM; }
+
+"verum"     { return VERUM; }
+"falsum"    { return FALSUM; }
+
+"captum"    { return CAPTUM; }
+"emittum"   { return EMITTUM; }
+
+"functio"   { return FUNCTIO; }
+"actio"     { return ACTIO; }
+"reddere"   { return REDDERE; }
+
+"quia"      { return QUIA; }
+"aliter"    { return ALITER; }
+
+"dum"       { return DUM; }
+"iter"      { return ITER; }
+"in"        { return IN; }
+"de"        { return DE; }
+"jusqua"    { return JUSQUA; }
 
 
-/* -- Declarations -- */
+"<--"       { return AFFECT; }
 
-"mut"           { return MUT;     } /* variable mutable         */
-"imm"           { return IMM;     } /* declaration de constante */
+"+"         { return PLUS; }
+"-"         { return MOINS; }
+"*"         { return MULT; }
+"/"         { return DIV; }
+"%"         { return MOD; }
 
+"<="        { return INF_EG; }
+">="        { return SUP_EG; }
+"=="        { return EGAL; }
+"!="        { return DIFF; }
+"<"         { return INF; }
+">"         { return SUP; }
 
-
-
-/* -- Types primitifs -- */
-
-"integer"       { return T_INTEGER; }   /* type entier                          */
-"reales"        { return T_REALES;  }   /* type nombre reel                     */
-"catena"        { return T_CATENA;  }   /* type chaines de caracteres           */
-"bina"          { return T_BINA;    }   /* type booleen                         */
-"nullum"        { return T_NULLUM;  }   /* type void                            */
-
-
-/* -- Litteraux booleens -- */
-
-"verum"         { return VERUM;  }  /* valeur booleenne vraie               */
-"falsum"        { return FALSUM; }  /* valeur booleenne fausse               */
+"&&"        { return ET; }
+"||"        { return OU; }
+"!"         { return NON; }
 
 
+"{"         { return ACCOLADE_OUV; }
+"}"         { return ACCOLADE_FER; }
+"("         { return PAREN_OUV; }
+")"         { return PAREN_FER; }
+","         { return VIRGULE; }
+"#"         { return HASH; }
+"'"         { return APOSTROPHE; }
 
 
-/* -- Entrees / Sorties -- */
-
-"captum"        { return CAPTUM;  } /* instruction de lecture               */
-"emittum"       { return EMITTUM; } /* instruction de d'eriture             */
-
-
-
-
-/* -- Sous-programmes -- */
-
-"functio"       { return FUNCTIO; } /* definition de fonction               */
-"actio"         { return ACTIO;   } /* définition de procedure              */
-"reddere"       { return REDDERE; } /* définition de valeur (return)        */
-
-
-
-
-/* -- Structures conditionnelles -- */
-
-"quia"          { return QUIA;   }  /* condition (if)       */
-"aliter"        { return ALITER; }  /* condition (else)     */
-
-
-
-
-/* -- Structures repetitives -- */
-
-"dum"           { return DUM;    }  /* boucle tant que (while)              */
-"iter"          { return ITER;   }  /* boucle d'itération (for)             */
-"in"            { return IN;     }  /* mot-clé iter : variable d'iteration  */
-"de"            { return DE;     }  /* mot-clé iter : pas (step)            */
-"jusqua"        { return JUSQUA; }  /* mot-cle iter : borne superieure      */
-
-
-
-
-/* -- Operateur d'affectation -- */
-
-"<--"           { return AFFECT; }  /* opérateur d'affectation LGLo         */
-
-
-
-
-/* -- Operateurs arithmetiques -- */
-
-"+"             { return PLUS;  }
-"-"             { return MOINS; }
-"*"             { return MULT;  }
-"/"             { return DIV;   }
-"%"             { return MOD;   }
-
-
-/* -- Operateurs de comparaison (ordre : 2 caracteres avant 1 caractere) -- */
-
-"<="            { return INF_EG; }
-">="            { return SUP_EG; }
-"=="            { return EGAL;   }
-"!="            { return DIFF;   }
-"<"             { return INF;    }
-">"             { return SUP;    }
-
-
-
-
-/* -- Operateurs logiques -- */
-
-"&&"            { return ET;  } /* conjonction logique (AND)            */
-"||"            { return OU;  } /* disjonction logique (OR)             */
-"!"             { return NON; } /* négation logique (NOT)               */
-
-
-
-
-/* -- Delimiteurs et ponctuations -- */
-
-"{"             { return ACCOLADE_OUV; }    /* début de bloc                   */
-"}"             { return ACCOLADE_FER; }    /* fin de bloc                     */
-"("             { return PAREN_OUV;    }    /* parenthese ouvrante             */
-")"             { return PAREN_FER;    }    /* parenthese fermante             */
-","             { return VIRGULE;      }    /* separateur de parametres        */
-"#"             { return HASH;         }    /* terminateur d'instruction       */
-"'"             { return APOSTROPHE;   }    /* delimiteur de copie d'identi    */
-
-
-
-
-/* -- Litteraux numeriques (NOMBRE_REEL avant NOMBRE_ENTIER, obligatoire) -- */
-
-{NOMBRE_REEL}   {
-                    yylval.reel = atof(yytext);
-                    return NOMBRE_REEL;
-                }
+{NOMBRE_REEL} {
+    yylval.reel = atof(yytext);
+    return NOMBRE_REEL;
+}
 
 {NOMBRE_ENTIER} {
-                    yylval.entier = atoi(yytext);
-                    return NOMBRE_ENTIER;
-                }
+    yylval.entier = atoi(yytext);
+    return NOMBRE_ENTIER;
+}
+
+{CHAINE} {
+    yylval.chaine = malloc(yyleng - 1);
+    strncpy(yylval.chaine, yytext + 1, yyleng - 2);
+    yylval.chaine[yyleng - 2] = '\0';
+    return CHAINE;
+}
+
+{IDENTI} {
+    yylval.chaine = strdup(yytext);
+    return IDENTI;
+}
 
 
+\n      { /* yylineno auto */ }
 
 
-/* -- Litteraux de type chaine -- */
-
-{CHAINE}        {
-                    /* stocke la valeur sans les guillemets */
-                    yylval.chaine = strndup(yytext + 1, yyleng - 2);
-                    return CHAINE;
-                }
+{BLANC} { /* ignore */ }
 
 
-
-
-/* -- Identifiants (apres tous les mots-cles) -- */
-
-{IDENTI}        {
-                    yylval.chaine = strdup(yytext);
-                    return IDENTI;
-                }
-
-
-
-
-/* -- Gestion des sauts de ligne -- */
-
-"\n"            { yyline++; }
-
-
-
-
-/* -- Espaces blancs ignores -- */
-
-{BLANC}         { }
-
-
-
-
-/* -- Caractere non reconnu : erreur lexicale -- */
-
-.               { erreur_lexicale(yytext[0], yyline); }
-
+. {
+    erreur_lexicale(yytext[0], yylineno);
+}
 
 %%

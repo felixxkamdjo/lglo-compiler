@@ -6,6 +6,7 @@
 #include "ast.h"
 #include "../utils/error.h"
 
+extern int yylineno;
 
 /* -- Allocation d'un noeud vide -- */
 
@@ -17,6 +18,7 @@ static ASTNode *nouveau_noeud(NodeType type) {
     }
     memset(n, 0, sizeof(ASTNode));
     n->type = type;
+    n->ligne = yylineno;
     return n;
 }
 

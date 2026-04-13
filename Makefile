@@ -1,22 +1,22 @@
 # Makefile - Compilation du compilateur LGLo
 
 CC      = gcc
-CFLAGS  = -Wall -Wextra -g -I./include -I./src/parser
+CFLAGS = -Wall -Wextra -g -I./include -I./build -I./src -I./src/utils -I./src/ast
 LDFLAGS =
 
-# repertoires
+# Repertoires
 SRC     = src
 BUILD   = build
 
-# fichiers sources C
-SRCS    = $(SRC)/main.c          \
-          $(SRC)/ast/ast.c       \
+# Fichiers sources C
+SRCS    = $(SRC)/main.c              \
+          $(SRC)/ast/ast.c           \
           $(SRC)/semantic/semantic.c \
-          $(SRC)/utils/error.c   \
-          $(BUILD)/lexer.c       \
+          $(SRC)/utils/error.c       \
+          $(BUILD)/lexer.c           \
           $(BUILD)/parser.tab.c
 
-# executable final
+# Executable final
 TARGET  = $(BUILD)/lglo_compiler
 
 
@@ -52,7 +52,7 @@ $(TARGET): $(SRCS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
-# -- Compilation en mode debug (affiche l'AST) --
+# -- Mode debug : affiche l'AST apres analyse --
 
 debug: CFLAGS += -DDEBUG
 debug: all

@@ -1,0 +1,19 @@
+Compilation de : tests/valid/test1.lglo
+[OK] Analyse syntaxique reussie.
+[OK] Analyse semantique reussie.
+[OK] Compilation terminee avec succes.
+-------------------
+Entrez une valeur pour n :
+(entree utilisateur : 5)
+Somme de 1 a n :
+15
+-------------------
+Table des carres de 1 a n :
+1
+4
+9
+16
+25
+-------------------
+Valeur absolue de (3 - n) :
+2

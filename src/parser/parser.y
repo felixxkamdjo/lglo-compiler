@@ -4,13 +4,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../ast/ast.h"
-#include "../utils/error.h"
+#include "ast/ast.h"
+#include "utils/error.h"
 
 extern int yylex();
-extern int yyline;
+extern int yylineno;
 
 void yyerror(const char *msg);
+
+/* racine de l'AST, recuperee par main.c */
+ASTNode *racine_ast = NULL;
 %}
 
 
@@ -80,7 +83,11 @@ void yyerror(const char *msg);
 /* -- Axiome -- */
 
 programme
-    : liste_inst                    { $$ = ast_programme($1); }
+    : liste_inst
+        {
+            $$ = ast_programme($1);
+            racine_ast = $$;
+        }
     ;
 
 
@@ -109,7 +116,7 @@ instruction
     ;
 
 
-/* -- Bloc delimited par accolades -- */
+/* -- Bloc delimite par accolades -- */
 
 bloc
     : ACCOLADE_OUV liste_inst ACCOLADE_FER  { $$ = $2; }
@@ -272,12 +279,14 @@ terme
     ;
 
 facteur
-    : NOMBRE_ENTIER                 { $$ = ast_entier($1); }
-    | NOMBRE_REEL                   { $$ = ast_reel($1); }
-    | IDENTI                        { $$ = ast_identi($1); }
+    : NOMBRE_ENTIER                  { $$ = ast_entier($1); }
+    | NOMBRE_REEL                    { $$ = ast_reel($1); }
+    | IDENTI                         { $$ = ast_identi($1); }
+    | VERUM                          { $$ = ast_booleen(1); }
+    | FALSUM                         { $$ = ast_booleen(0); }
     | PAREN_OUV expr_arith PAREN_FER { $$ = $2; }
-    | MOINS facteur %prec UMINUS    { $$ = ast_unaire("-", $2); }
-    | appel                         { $$ = $1; }
+    | MOINS facteur %prec UMINUS     { $$ = ast_unaire("-", $2); }
+    | appel                          { $$ = $1; }
     ;
 
 
@@ -297,8 +306,6 @@ comp
     | expr_arith SUP_EG expr_arith  { $$ = ast_binaire(">=", $1, $3); }
     | expr_arith EGAL   expr_arith  { $$ = ast_binaire("==", $1, $3); }
     | expr_arith DIFF   expr_arith  { $$ = ast_binaire("!=", $1, $3); }
-    | VERUM                         { $$ = ast_booleen(1); }
-    | FALSUM                        { $$ = ast_booleen(0); }
     | PAREN_OUV expr_bool PAREN_FER { $$ = $2; }
     ;
 
@@ -309,5 +316,5 @@ comp
 /* -- Erreur syntaxique : affiche le message et la ligne courante -- */
 
 void yyerror(const char *msg) {
-    fprintf(stderr, "[Erreur syntaxique] %s - ligne %d\n", msg, yyline);
+    fprintf(stderr, "[Erreur syntaxique] %s - ligne %d\n", msg, yylineno);
 }

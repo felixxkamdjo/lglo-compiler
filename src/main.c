@@ -1,4 +1,4 @@
-/* main.c - Point d'entree du compilateur */
+/* main.c - Point d'entree du compilateur LGLo */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,11 +8,11 @@
 #include "utils/error.h"
 
 /* fournis par Bison et Flex */
-extern FILE *yyin;
-extern int   yyparse();
-extern int   yyline;
+extern FILE    *yyin;
+extern int      yyparse();
+extern int      yylineno;
 
-/* racine de l'AST, renseignee par parser.y apres analyse complete */
+/* racine de l'AST, definie dans parser.y */
 extern ASTNode *racine_ast;
 
 
@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+
     /* -- Ouverture du fichier source -- */
     yyin = fopen(argv[1], "r");
     if (!yyin) {
@@ -32,9 +33,9 @@ int main(int argc, char *argv[]) {
 
     printf("Compilation de : %s\n", argv[1]);
 
+
     /* -- Analyse lexicale et syntaxique -- */
     int statut = yyparse();
-
     fclose(yyin);
 
     if (statut != 0) {
@@ -44,12 +45,15 @@ int main(int argc, char *argv[]) {
 
     printf("[OK] Analyse syntaxique reussie.\n");
 
-    /* -- Affichage de l'AST (debug) -- */
+
+    /* -- Affichage de l'AST en mode debug -- */
+
     #ifdef DEBUG
         printf("\n--- Arbre Syntaxique Abstrait ---\n");
         ast_afficher(racine_ast, 0);
         printf("---------------------------------\n\n");
     #endif
+
 
     /* -- Analyse semantique -- */
     if (analyser_semantique(racine_ast) != 0) {
@@ -59,6 +63,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("[OK] Analyse semantique reussie.\n");
+
 
     /* -- Liberation de la memoire -- */
     ast_liberer(racine_ast);

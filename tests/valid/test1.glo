@@ -1,0 +1,66 @@
+(* test1.lglo - Programme de test general
+   Couvre : mut, imm, captum, emittum, quia, aliter, dum, iter, functio, actio
+*)
+
+(* constantes globales *)
+imm integer LIMITE <-- 10 #
+imm reales  PI     <-- 3.14 #
+
+(* procedure d'affichage d'un separateur *)
+actio afficher_separateur() {
+    emittum("-------------------") #
+}
+
+(* fonction : somme des entiers de 1 a n *)
+functio integer somme(integer n) {
+    mut integer total <-- 0 #
+    mut integer i     <-- 1 #
+    dum(i <= n) {
+        total <-- total + i #
+        i     <-- i + 1 #
+    }
+    reddere total #
+}
+
+(* fonction : valeur absolue *)
+functio integer abs_val(integer x) {
+    quia(x < 0) {
+        reddere 0 - x #
+    }
+    reddere x #
+}
+
+(* programme principal *)
+mut integer n #
+mut integer s #
+mut bina    continuer <-- verum #
+
+afficher_separateur() #
+emittum("Entrez une valeur pour n :") #
+captum(n) #
+
+quia(n <= 0) {
+    emittum("Valeur invalide.") #
+    continuer <-- falsum #
+} aliter quia(n > LIMITE) {
+    emittum("Valeur trop grande, plafonnee a LIMITE.") #
+    n <-- LIMITE #
+}
+
+quia(continuer == verum) {
+    s <-- somme(n) #
+    emittum("Somme de 1 a n :") #
+    emittum(s) #
+
+    afficher_separateur() #
+
+    emittum("Table des carres de 1 a n :") #
+    iter(k in 1 de 1 jusqua n) {
+        emittum(k * k) #
+    }
+
+    afficher_separateur() #
+
+    emittum("Valeur absolue de (3 - n) :") #
+    emittum(abs_val(3 - n)) #
+}

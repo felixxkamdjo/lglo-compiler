@@ -61,6 +61,8 @@ typedef struct ASTNode {
 
     NodeType type;
 
+    int ligne;
+
     union {
 
         /* N_ENTIER */

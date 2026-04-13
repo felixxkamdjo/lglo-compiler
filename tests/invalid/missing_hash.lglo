@@ -1,0 +1,15 @@
+(* missing_hash.lglo - Test d'erreur syntaxique : terminateur # manquant
+   Erreurs attendues :
+     - ligne 8  : instruction affectation sans #
+     - ligne 12 : instruction emittum sans #
+*)
+
+mut integer x <-- 10 #
+mut integer y <-- 20 #
+
+x <-- x + y       (* manque le # en fin d'instruction *)
+
+mut integer z <-- x * 2 #
+
+emittum(z)         (* manque le # en fin d'instruction *)
+emittum("fin") #
